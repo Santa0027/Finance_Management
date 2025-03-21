@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">Company List</h3>
+
+    <!-- Display Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Add Company Button -->
+    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCompanyModal">
+        <i class="fas fa-plus"></i> Add Company
+    </button>
+
+    <!-- Company List Table -->
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Logo</th>
+                <th>Company Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Industry</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for company in companies %}
+            <tr id="company-row-{{ company.id }}">
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    {% if company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.name }} Logo" width="50" height="50">
+                    {% else %}
+                        <span>No Logo</span>
+                    {% endif %}
+                </td>
+                <td>{{ company.name }}</td>
+                <td>{{ company.email }}</td>
+                <td>{{ company.phone }}</td>
+                <td>{{ company.industry }}</td>
+                <td>
+                    <!-- Edit Button -->
+                    <button class="btn btn-warning btn-sm edit-btn" 
+                            data-company-id="{{ company.id }}" 
+                            data-company-name="{{ company.name }}" 
+                            data-company-email="{{ company.email }}" 
+                            data-company-phone="{{ company.phone }}" 
+                            data-company-industry="{{ company.industry }}"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#editCompanyModal">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    
+                    <!-- Delete Button -->
+                    <a href="{% url 'delete_company' company.id %}" class="btn btn-danger btn-sm"
+                    onclick="return confirm('Are you sure you want to delete this company?');">
+                     Delete
+                 </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Add Company Modal -->
+<div class="modal fade" id="addCompanyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCompanyModalLabel">Add New Company</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCompanyForm" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-success">Add Company</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Company Modal -->
+<div class="modal fade" id="editCompanyModal" tabindex="-1" aria-labelledby="editCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCompanyModalLabel">Edit Company</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCompanyForm" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" id="editCompanyId">
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-warning">Update Company</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for AJAX -->
+<script>
+    $(document).ready(function () {
+        // Handle Delete Button Click
+        $(".delete-btn").click(function () {
+            var companyId = $(this).data("company-id");
+            var row = $("#company-row-" + companyId);
+
+            if (confirm("Are you sure you want to delete this company?")) {
+                $.ajax({
+                    url: "/company/delete/" + companyId + "/",
+                    type: "POST",
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                    success: function (response) {
+                        if (response.success) {
+                            row.fadeOut(500, function () { $(this).remove(); });
+                        }
+                    },
+                    error: function () {
+                        alert("Error deleting company.");
+                    }
+                });
+            }
+        });
+
+        // Handle Edit Button Click
+        $(".edit-btn").click(function () {
+            var companyId = $(this).data("company-id");
+            var companyName = $(this).data("company-name");
+            var companyEmail = $(this).data("company-email");
+            var companyPhone = $(this).data("company-phone");
+            var companyIndustry = $(this).data("company-industry");
+
+            $("#editCompanyId").val(companyId);
+            $("#id_name").val(companyName);
+            $("#id_email").val(companyEmail);
+            $("#id_phone").val(companyPhone);
+            $("#id_industry").val(companyIndustry);
+        });
+
+        // Handle Add Company Form Submission
+        $("#addCompanyForm").submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: "{% url 'add_company' %}",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                success: function (response) {
+                    location.reload(); // Reload page to update list
+                },
+                error: function () {
+                    alert("Error adding company.");
+                }
+            });
+        });
+
+        // Handle Edit Company Form Submission
+        $("#editCompanyForm").submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            var companyId = $("#editCompanyId").val();
+
+            $.ajax({
+                url: "/company/edit/" + companyId + "/",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                success: function (response) {
+                    location.reload(); // Reload page to update list
+                },
+                error: function () {
+                    alert("Error updating company.");
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}
