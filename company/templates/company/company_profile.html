@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h3 class="mb-4">Company List</h3>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Logo</th>
+                <th>Company Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Industry</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for company in companies %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    {% if company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.name }} Logo" width="50" height="50">
+                    {% else %}
+                        <span>No Logo</span>
+                    {% endif %}
+                </td>
+                <td>{{ company.name }}</td>
+                <td>{{ company.email }}</td>
+                <td>{{ company.phone }}</td>
+                <td>{{ company.industry }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h4>Add New Company</h4>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Add Company</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Welcome to Finance Management System</h1>
+<p>Manage invoices, clients, expenses, and reports from here.</p>
+<ul>
+    <li><a href="{% url 'company_list' %}">Company Profile</a></li>
+    <li><a href="#">Billing & Invoices</a></li>
+    <li><a href="#">Services</a></li>
+    <li><a href="#">Expenses</a></li>
+</ul>
+{% endblock %}
