@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'billing',
     'company',
     'jazzmin',
-    'dashboard'
+    'dashboard',
+    'service'
     
 ]
 
