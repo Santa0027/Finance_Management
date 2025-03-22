@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Billing Management</h2>
+
+    <!-- Select Company Dropdown -->
+    <label for="company">Select Company:</label>
+    <select id="company" class="form-control">
+        <option value="">-- Select Company --</option>
+        {% for company in companies %}
+            <option value="{{ company.id }}">{{ company.name }}</option>
+        {% endfor %}
+    </select>
+
+    <!-- Invoice Table -->
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th>Customer Type</th>
+                <th>Invoice Date</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{ invoice.customer_type }}</td>
+                <td>{{ invoice.invoice_date }}</td>
+                <td>{{ invoice.due_date }}</td>
+                <td>
+                      <button onclick="editInvoice('{{ invoice.id }}')">Edit</button>
+                <button onclick="deleteInvoice('{{ invoice.id }}')">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Add Invoice Button -->
+    <button class="btn btn-success mt-3" onclick="openInvoiceModal()">Add Invoice</button>
+
+    <!-- Invoice Modal -->
+    <div id="invoiceModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Invoice Form</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="invoiceForm">
+                        <input type="hidden" id="invoiceId">
+                        <label>Customer Type:</label>
+                        <select id="customerType" class="form-control">
+                            <option value="company">Company</option>
+                            <option value="individual">Individual</option>
+                        </select>
+
+                        <label>Customer:</label>
+                        <select id="customerId" class="form-control">
+                            {% for company in companies %}
+                                <option value="{{ company.id }}">{{ company.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <label>Invoice Date:</label>
+                        <input type="date" id="invoiceDate" class="form-control">
+
+                        <label>Due Date:</label>
+                        <input type="date" id="dueDate" class="form-control">
+
+                        <button type="button" class="btn btn-primary mt-3" onclick="saveInvoice()">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openInvoiceModal() {
+        $('#invoiceModal').modal('show');
+    }
+
+    function editInvoice(invoiceId) {
+        fetch(`/invoice/get_invoice/${invoiceId}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("invoiceId").value = data.id;
+                document.getElementById("customerType").value = data.customer_type;
+                document.getElementById("customerId").value = data.customer_id;
+                document.getElementById("invoiceDate").value = data.invoice_date;
+                document.getElementById("dueDate").value = data.due_date;
+                $('#invoiceModal').modal('show');
+            });
+    }
+
+    function saveInvoice() {
+        const invoiceId = document.getElementById("invoiceId").value;
+        const customerType = document.getElementById("customerType").value;
+        const customerId = document.getElementById("customerId").value;
+        const invoiceDate = document.getElementById("invoiceDate").value;
+        const dueDate = document.getElementById("dueDate").value;
+
+        fetch("/invoice/save_invoice/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+            body: JSON.stringify({ invoice_id: invoiceId, customer_type: customerType, customer_id: customerId, invoice_date: invoiceDate, due_date: dueDate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            location.reload();
+        });
+    }
+
+    function deleteInvoice(invoiceId) {
+        if (confirm("Are you sure you want to delete this invoice?")) {
+            fetch("/invoice/delete_invoice/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+                body: JSON.stringify({ invoice_id: invoiceId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            });
+        }
+    }
+</script>
+{% endblock %}

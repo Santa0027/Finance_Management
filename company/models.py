@@ -16,6 +16,16 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Individual(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name    
+    
+    
 
 
 

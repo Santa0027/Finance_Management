@@ -43,18 +43,18 @@ def delete_category(request, category_id):
     category.delete()
     return redirect('service') 
 
-def edit_service(request):
-    if request.method == "POST":
-        service_id = request.POST.get("service_id")
-        service = get_object_or_404(Service, id=service_id)
 
-        service.name = request.POST.get("name")
-        service.description = request.POST.get("description")
+def edit_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id)
+
+    if request.method == 'POST':
+        service.name = request.POST.get('name')
+        service.category_id = request.POST.get('category')  # Assuming categories exist
+        service.description = request.POST.get('description')
         service.save()
+        return redirect('dashboard')  # Redirect after update
 
-        return JsonResponse({"success": True})
-
-    return JsonResponse({"success": False}, status=400)
+    return render(request, 'service/edit_service.html', {'service': service})
 
 
 def delete_service(request, service_id):

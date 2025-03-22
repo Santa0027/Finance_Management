@@ -86,7 +86,8 @@
                                 <td>{{ service.category.name }}</td>
                                 <td>{{ service.description }}</td>
                                 <td>
-                                    <a href="#" class="btn btn-warning edit-btn" data-id="{{ service.id }}" data-name="{{ service.name }} ">Edit</a>
+                                    <a href="{% url 'edit_service' service.id %}" class="btn btn-warning">Edit</a>
+
                                     <a href="{% url 'delete_service' service.id %}"class="btn btn-danger"onclick="return confirmDelete();">
 Delete
 </a>

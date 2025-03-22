@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Invoice Creation</h2>
+
+    <form id="invoiceForm">
+        <input type="hidden" id="invoice_id">  <!-- Hidden input for edit mode -->
+        
+        <label>Customer Type</label>
+        <select id="customer_type">
+            <option value="individual">Individual</option>
+            <option value="company">Company</option>
+        </select>
+
+        <div id="companySelection" style="display: none;">
+            <label>Select Company</label>
+            <select id="companyDropdown">
+                <option value="">Select Company</option>
+                {% for company in companies %}
+                <option value="{{ company.id }}" data-gst="{{ company.gst_number }}" data-address="{{ company.address }}">
+                    {{ company.name }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <label>GST Number</label>
+            <input type="text" id="gst_number" readonly>
+
+            <label>Company Address</label>
+            <textarea id="company_address" readonly></textarea>
+        </div>
+
+        <label>Invoice Date</label>
+        <input type="date" id="invoice_date">
+
+        <label>Due Date</label>
+        <input type="date" id="due_date">
+
+        <button type="button" onclick="submitInvoice()">Save Invoice</button>
+    </form>
+
+    <h3>Invoices</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Customer Type</th>
+                <th>Date</th>
+                <th>Due</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+      {% if invoices %}
+    {% for invoice in invoices %}
+        <tr>
+            <td>{{ invoice.customer_type }}</td>
+            <td>{{ invoice.invoice_date }}</td>
+            <td>{{ invoice.due_date }}</td>
+            <td>
+                <button onclick="editInvoice('{{ invoice.id }}')">Edit</button>
+                <button onclick="deleteInvoice('{{ invoice.id }}')">Delete</button>
+            </td>
+        </tr>
+    {% endfor %}
+{% else %}
+    <tr><td colspan="4">No invoices found.</td></tr>
+{% endif %}
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+document.getElementById("customer_type").addEventListener("change", function () {
+    document.getElementById("companySelection").style.display = this.value === "company" ? "block" : "none";
+});
+
+document.getElementById("companyDropdown").addEventListener("change", function () {
+    let selectedOption = this.options[this.selectedIndex];
+    document.getElementById("gst_number").value = selectedOption.getAttribute("data-gst");
+    document.getElementById("company_address").value = selectedOption.getAttribute("data-address");
+});
+
+function submitInvoice() {
+    let invoiceId = document.getElementById("invoice_id").value;
+    let customerType = document.getElementById("customer_type").value;
+    let customerId = document.getElementById("companyDropdown").value;
+    let invoiceDate = document.getElementById("invoice_date").value;
+    let dueDate = document.getElementById("due_date").value;
+
+    fetch("/invoice/save/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+        body: JSON.stringify({ invoice_id: invoiceId, customer_type: customerType, customer_id: customerId, invoice_date: invoiceDate, due_date: dueDate })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    });
+}
+
+function deleteInvoice(id) {
+    fetch("/invoice/delete/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+        body: JSON.stringify({ invoice_id: id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    });
+}
+</script>
+{% endblock %}
