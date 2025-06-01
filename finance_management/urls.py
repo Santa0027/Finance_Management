@@ -22,5 +22,5 @@ urlpatterns = [
     path('company/', include(('company.urls', 'company'), namespace='company')),
     path('', include('dashboard.urls')),
     path('service/', include('service.urls')),
-    path('billing/', include('billing.urls')),
+    path('billing/', include('billing.urls', namespace='billing')),
 ]
