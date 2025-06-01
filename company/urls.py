@@ -1,13 +1,14 @@
 from django.urls import path
-from django.conf import settings
-from django.conf.urls.static import static
-from django.urls import path
-from .views import company_list, edit_company , add_company , delete_company
+from . import views
+
+app_name = "company"
 
 urlpatterns = [
-    path('company/list/', company_list, name='company_list'),
-    path('company/add/', add_company, name='add_company'),
-    path('company/edit/<int:company_id>/', edit_company, name='edit_company'),
-    path('company/delete/<int:company_id>/', delete_company, name='delete_company'),
+    path('', views.company_list, name='company_list'),
+    path('add/', views.company_add, name='company_add'),
+    path('edit/<int:id>/', views.company_edit, name='company_edit'),
+    path('delete/<int:id>/', views.company_delete, name='company_delete'),
+    path('individual/add/', views.individual_add, name='individual_add'),
+    path('individual/edit/<int:id>/', views.individual_edit, name='individual_edit'),
+    path('individual/delete/<int:id>/', views.individual_delete, name='individual_delete'),
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

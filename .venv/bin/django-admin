@@ -1,4 +1,4 @@
-#!/home/administrator/apps/software/finance_management/.venv/bin/python3
+#!/home/santhakumar/Documents/finance/Finance_Management/.venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

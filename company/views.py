@@ -1,49 +1,96 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from .models import Company
-from .forms import CompanyForm
-
 from django.http import JsonResponse
-
-def delete_company(request, company_id):
-    company = get_object_or_404(Company, id=company_id)
-    company.delete()
-    messages.success(request, "Company deleted successfully!")
-    return redirect('company_list')
-
+from django.views.decorators.csrf import csrf_exempt
+from .models import Company, Individual
+from .forms import CompanyForm, IndividualForm  # create Django ModelForms for validation
+from django.shortcuts import render,redirect
+from django.contrib import messages
 
 def company_list(request):
     companies = Company.objects.all()
+    individuals = Individual.objects.all()
     form = CompanyForm()
-    return render(request, 'company/company_list.html', {'companies': companies, 'form': form})
+    return render(request, 'company/company_list.html', {
+        'companies': companies,
+        'form': form,
+        'individuals': individuals  # ✅ FIXED HERE
+    })
 
-def add_company(request):
-    if request.method == "POST":
+def company_add(request):
+    
+    if request.method == 'POST':
+        print("Received company add request")
         form = CompanyForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            messages.success(request, "Company added successfully!")
-            return redirect('company_list')
-        else:
-            for field, error in form.errors.items():
-                messages.error(request, f"{field.capitalize()}: {error.as_text()}")
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'errors': form.errors})
+    return JsonResponse({'success': False, 'errors': 'Invalid request method'})
 
-    # If there are errors, return to the list page with the form data
-    companies = Company.objects.all()
-    return render(request, 'company/company_list.html', {'companies': companies, 'form': form})
+def company_edit(request, id):
+    try:
+        company = Company.objects.get(id=id)
+    except Company.DoesNotExist:
+        return JsonResponse({'success': False, 'errors': 'Company not found'})
 
-def edit_company(request, company_id):
-    company = get_object_or_404(Company, id=company_id)
-    if request.method == "POST":
+    if request.method == 'POST':
+        print("Received company add request")
         form = CompanyForm(request.POST, request.FILES, instance=company)
         if form.is_valid():
             form.save()
-            messages.success(request, "Company updated successfully!")
-            return redirect('company_list')
-        else:
-            for field, error in form.errors.items():
-                messages.error(request, f"{field.capitalize()}: {error.as_text()}")
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'errors': form.errors})
+    return JsonResponse({'success': False, 'errors': 'Invalid request method'})
 
-    # If there are errors, return the form and company list
-    companies = Company.objects.all()
-    return render(request, 'company/company_list.html', {'companies': companies, 'form': form, 'editing': True, 'company': company})
+def company_delete(request, id):
+    if request.method == 'POST':
+        try:
+            company = Company.objects.get(id=id)
+            company.delete()
+            return JsonResponse({'success': True})
+        except Company.DoesNotExist:
+            return JsonResponse({'success': False, 'errors': 'Company not found'})
+    return JsonResponse({'success': False, 'errors': 'Invalid request method'})
+
+# Similarly for individual
+
+def individual_add(request):
+    if request.method == 'POST':
+        name = request.POST.get('full_name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+
+        if not name:
+            return JsonResponse({'success': False, 'error': 'Name is required.'}, status=400)
+
+        Individual.objects.create(name=name, email=email, phone=phone)
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
+
+
+def individual_edit(request, id):
+    try:
+        individual = Individual.objects.get(id=id)
+    except Individual.DoesNotExist:
+        return JsonResponse({'success': False, 'errors': 'Individual not found'})
+
+    if request.method == 'POST':
+        form = IndividualForm(request.POST, instance=individual)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'errors': form.errors})
+    return JsonResponse({'success': False, 'errors': 'Invalid request method'})
+
+def individual_delete(request, id):
+    if request.method == 'POST':
+        try:
+            individual = Individual.objects.get(id=id)
+            individual.delete()
+            messages.success(request, "Individual deleted successfully.")
+        except Individual.DoesNotExist:
+            messages.error(request, "Individual not found.")
+        return redirect('company:company_list')  # Replace 'company:home' with your main page URL name
+    else:
+        messages.error(request, "Invalid request method.")
+        return redirect('company:company_list')

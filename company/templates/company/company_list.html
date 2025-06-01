@@ -1,195 +1,288 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-4">
-    <h3 class="mb-4">Company List</h3>
+    <!-- Nav Tabs -->
+    <ul class="nav nav-tabs" id="myTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="company-tab" data-bs-toggle="tab" data-bs-target="#companyTab" type="button" role="tab">Companies</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="individual-tab" data-bs-toggle="tab" data-bs-target="#individualTab" type="button" role="tab">Individuals</button>
+        </li>
+    </ul>
 
-    <!-- Display Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
+    <div class="tab-content mt-4">
+        <!-- Company Tab -->
+        <div class="tab-pane fade show active" id="companyTab" role="tabpanel">
+            <h3 class="mb-4">Company List</h3>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
 
-    <!-- Add Company Button -->
-    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCompanyModal">
-        <i class="fas fa-plus"></i> Add Company
-    </button>
+            <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#companyModal" id="addCompanyBtn">Add Company</button>
 
-    <!-- Company List Table -->
-    <table class="table table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>#</th>
-                <th>Logo</th>
-                <th>Company Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Industry</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for company in companies %}
-            <tr id="company-row-{{ company.id }}">
-                <td>{{ forloop.counter }}</td>
-                <td>
-                    {% if company.logo %}
-                        <img src="{{ company.logo.url }}" alt="{{ company.name }} Logo" width="50" height="50">
-                    {% else %}
-                        <span>No Logo</span>
-                    {% endif %}
-                </td>
-                <td>{{ company.name }}</td>
-                <td>{{ company.email }}</td>
-                <td>{{ company.phone }}</td>
-                <td>{{ company.industry }}</td>
-                <td>
-                    <!-- Edit Button -->
-                    <button class="btn btn-warning btn-sm edit-btn" 
-                            data-company-id="{{ company.id }}" 
-                            data-company-name="{{ company.name }}" 
-                            data-company-email="{{ company.email }}" 
-                            data-company-phone="{{ company.phone }}" 
-                            data-company-industry="{{ company.industry }}"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#editCompanyModal">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    
-                    <!-- Delete Button -->
-                    <a href="{% url 'delete_company' company.id %}" class="btn btn-danger btn-sm"
-                    onclick="return confirm('Are you sure you want to delete this company?');">
-                     Delete
-                 </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Logo</th>
+                        <th>Company Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Industry</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for company in companies %}
+                    <tr id="company-row-{{ company.id }}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{% if company.logo %}<img src="{{ company.logo.url }}" width="50" height="50">{% else %}No Logo{% endif %}</td>
+                        <td>{{ company.name }}</td>
+                        <td>{{ company.email }}</td>
+                        <td>{{ company.phone }}</td>
+                        <td>{{ company.industry }}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm edit-btn" data-id="{{ company.id }}" data-name="{{ company.name }}" data-email="{{ company.email }}" data-phone="{{ company.phone }}" data-industry="{{ company.industry }}" data-bs-toggle="modal" data-bs-target="#companyModal">Edit</button>
+                            <button class="btn btn-danger btn-sm delete-btn" data-company-id="{{ company.id }}">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-<!-- Add Company Modal -->
-<div class="modal fade" id="addCompanyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addCompanyModalLabel">Add New Company</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addCompanyForm" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-success">Add Company</button>
-                </form>
-            </div>
+        <!-- Individual Tab -->
+        <div class="tab-pane fade" id="individualTab" role="tabpanel">
+            <h3 class="mb-4">Individual List</h3>
+
+            <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#individualModal" id="addIndividualBtn">Add Individual</button>
+
+            <table class="table table-bordered">
+                <thead class="table-success">
+                    <tr>
+                        <th>#</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for individual in individuals %}
+                    <tr id="individual-row-{{ individual.id }}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ individual.name }}</td>
+                        <td>{{ individual.email }}</td>
+                        <td>{{ individual.phone }}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm individual-edit-btn"
+                                data-id="{{ individual.id }}"
+                                data-name="{{ individual.name }}"
+                                data-email="{{ individual.email }}"
+                                data-phone="{{ individual.phone }}"
+                                data-bs-toggle="modal"
+                                data-bs-target="#individualModal">Edit</button>
+                            <form method="POST" action="{% url 'company:individual_delete' id=individual.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Company Modal -->
+    <div class="modal fade" id="companyModal" tabindex="-1" aria-labelledby="modalLabelCompany" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="companyForm" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" id="company_id" name="company_id">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabelCompany">Add Company</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" class="form-control mb-3" id="name" name="name" placeholder="Name" required>
+                        <input type="email" class="form-control mb-3" id="email" name="email" placeholder="Email" required>
+                        <input type="text" class="form-control mb-3" id="phone" name="phone" placeholder="Phone" required>
+                        <input type="text" class="form-control mb-3" id="industry" name="industry" placeholder="Industry" required>
+                        <input type="file" class="form-control mb-3" id="logo" name="logo">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" id="companySaveBtn">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Individual Modal -->
+    <div class="modal fade" id="individualModal" tabindex="-1" aria-labelledby="modalLabelIndividual" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="individualForm" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="individual_id" name="individual_id">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabelIndividual">Add Individual</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" class="form-control mb-3" id="individual_name" name="name" placeholder="Full Name" required>
+                        <input type="email" class="form-control mb-3" id="individual_email" name="email" placeholder="Email" required>
+                        <input type="text" class="form-control mb-3" id="individual_phone" name="phone" placeholder="Phone" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success" id="individualSaveBtn">Save</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Edit Company Modal -->
-<div class="modal fade" id="editCompanyModal" tabindex="-1" aria-labelledby="editCompanyModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editCompanyModalLabel">Edit Company</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editCompanyForm" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <input type="hidden" id="editCompanyId">
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-warning">Update Company</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- JavaScript for AJAX -->
+<!-- SCRIPTS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function () {
-        // Handle Delete Button Click
-        $(".delete-btn").click(function () {
-            var companyId = $(this).data("company-id");
-            var row = $("#company-row-" + companyId);
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
 
-            if (confirm("Are you sure you want to delete this company?")) {
-                $.ajax({
-                    url: "/company/delete/" + companyId + "/",
-                    type: "POST",
-                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
-                    success: function (response) {
-                        if (response.success) {
-                            row.fadeOut(500, function () { $(this).remove(); });
-                        }
-                    },
-                    error: function () {
-                        alert("Error deleting company.");
-                    }
-                });
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!(/^GET|HEAD|OPTIONS|TRACE$/i.test(settings.type)) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
+});
+
+$("#addCompanyBtn").click(function () {
+    $("#companyForm")[0].reset();
+    $("#company_id").val('');
+    $("#modalLabelCompany").text("Add Company");
+});
+
+$(".edit-btn").click(function () {
+    $("#company_id").val($(this).data("id"));
+    $("#name").val($(this).data("name"));
+    $("#email").val($(this).data("email"));
+    $("#phone").val($(this).data("phone"));
+    $("#industry").val($(this).data("industry"));
+    $("#modalLabelCompany").text("Edit Company");
+    $("#logo").val('');
+});
+
+$("#companyForm").submit(function (event) {
+    event.preventDefault();
+    let formData = new FormData(this);
+    let id = $("#company_id").val();
+    let url = id ? `/company/edit/${id}/` : "/company/add/";
+
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (res) {
+            if (res.success) {
+                location.reload();
+            } else {
+                alert("Error: " + JSON.stringify(res.errors));
+            }
+        },
+        error: function(xhr) {
+            alert("An error occurred: " + xhr.statusText);
+        }
+    });
+});
+
+$(".delete-btn").click(function () {
+    const id = $(this).data("company-id");
+    if (confirm("Delete this company?")) {
+        $.ajax({
+            type: "POST",
+            url: `/company/delete/${id}/`,
+            success: function (res) {
+                if (res.success) {
+                    location.reload();
+                } else {
+                    alert("Error deleting company");
+                }
+            },
+            error: function(xhr) {
+                alert("Error deleting company: " + xhr.statusText);
             }
         });
+    }
+});
 
-        // Handle Edit Button Click
-        $(".edit-btn").click(function () {
-            var companyId = $(this).data("company-id");
-            var companyName = $(this).data("company-name");
-            var companyEmail = $(this).data("company-email");
-            var companyPhone = $(this).data("company-phone");
-            var companyIndustry = $(this).data("company-industry");
+// Individual Add/Edit
+$("#addIndividualBtn").click(function () {
+    $("#individualForm")[0].reset();
+    $("#individual_id").val('');
+    $("#modalLabelIndividual").text("Add Individual");
+});
 
-            $("#editCompanyId").val(companyId);
-            $("#id_name").val(companyName);
-            $("#id_email").val(companyEmail);
-            $("#id_phone").val(companyPhone);
-            $("#id_industry").val(companyIndustry);
-        });
+$(".individual-edit-btn").click(function () {
+    $("#individual_id").val($(this).data("id"));
+    $("#individual_name").val($(this).data("name"));
+    $("#individual_email").val($(this).data("email"));
+    $("#individual_phone").val($(this).data("phone"));
+    $("#modalLabelIndividual").text("Edit Individual");
+});
 
-        // Handle Add Company Form Submission
-        $("#addCompanyForm").submit(function (e) {
-            e.preventDefault();
-            var formData = new FormData(this);
+$("#individualForm").submit(function (e) {
+    e.preventDefault();
+    let id = $("#individual_id").val();
+    let url = id ? `/company/individual/edit/${id}/` : "{% url 'company:individual_add' %}";
 
-            $.ajax({
-                url: "{% url 'add_company' %}",
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                headers: { "X-CSRFToken": "{{ csrf_token }}" },
-                success: function (response) {
-                    location.reload(); // Reload page to update list
-                },
-                error: function () {
-                    alert("Error adding company.");
-                }
-            });
-        });
+    const formData = {
+        name: $('#individual_name').val(),
+        email: $('#individual_email').val(),
+        phone: $('#individual_phone').val(),
+        csrfmiddlewaretoken: csrftoken
+    };
 
-        // Handle Edit Company Form Submission
-        $("#editCompanyForm").submit(function (e) {
-            e.preventDefault();
-            var formData = new FormData(this);
-            var companyId = $("#editCompanyId").val();
-
-            $.ajax({
-                url: "/company/edit/" + companyId + "/",
-                type: "POST",
-                data: formData,
-                processData: false,
-                contentType: false,
-                headers: { "X-CSRFToken": "{{ csrf_token }}" },
-                success: function (response) {
-                    location.reload(); // Reload page to update list
-                },
-                error: function () {
-                    alert("Error updating company.");
-                }
-            });
-        });
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: formData,
+        dataType: "json",
+        success: function (response) {
+            if (response.success) {
+                alert("Individual saved successfully!");
+                $('#individualModal').modal('hide');
+                $('#individualForm')[0].reset();
+                location.reload();
+            } else {
+                alert("Error: " + (response.error || "Something went wrong."));
+            }
+        },
+        error: function (xhr, status, error) {
+            console.log(xhr.responseText);
+            alert("Error: " + error);
+        }
     });
+});
 </script>
-
 {% endblock %}
